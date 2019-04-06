@@ -2,6 +2,7 @@
 
 * 使用离屏渲染一个Canvas层于three.js的canvas层上方以绘制hud
 * 使用promise改写了图片加载解决了回调嵌套的问题
+* 使用Raycaster完成碰撞检测
 
 ## 源码目录介绍
 ```

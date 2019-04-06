@@ -14,6 +14,7 @@ export default class Main {
     this.createLight();
     this.createTarget();
     this.createGroup()
+    this.createRaycaster()
     this.createHud();
     this.HudEvent();
     // this.setControls()
@@ -23,8 +24,8 @@ export default class Main {
   // 初始化场景
   init() {
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-    this.camera.position.set(-4, 10, 10);
-    this.camera.rotation.set(-0.3, -0.2, 0)
+    this.camera.position.set(0, 7, 7);
+    this.camera.rotation.set(-0.5, 0, 0)
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xa0a0a0);
@@ -77,11 +78,26 @@ export default class Main {
     let blueLambertMat = new THREE.MeshPhongMaterial({
       color: 0x0000ff
     });
-    let wallGeo = new THREE.PlaneBufferGeometry(20, 20);
+    let wallGeo = new THREE.PlaneBufferGeometry(20, 10);
     this.wall = new THREE.Mesh(wallGeo, blueLambertMat);
-    this.wall.position.set(0, 8, -15)
+    this.wall2 = new THREE.Mesh(wallGeo, blueLambertMat);
+    this.wall3 = new THREE.Mesh(wallGeo, blueLambertMat);
+    this.wall2.rotation.set(0, -1.6, 0)
+    this.wall3.rotation.set(0, 1.6, 0)
+    this.wall.position.set(0, 4, -15)
+    this.wall2.position.set(8, 4, -5);
+    this.wall3.position.set(-8, 4, -5);
     this.wall.castShadow = true;
-    this.scene.add(this.wall);
+    this.wall2.castShadow = true;
+    this.wall3.castShadow = true;
+    this.wallGroup = new THREE.Group();
+    this.wallGroup.add(this.wall)
+    this.wallGroup.add(this.wall2)
+    this.wallGroup.add(this.wall3)
+    this.scene.add(this.wallGroup);
+    // this.scene.add(this.wall);
+    // this.scene.add(this.wall2);
+    // this.scene.add(this.wall3);
 
     let redLambertMat = new THREE.MeshPhongMaterial({
       color: 0xff0000
@@ -144,7 +160,16 @@ export default class Main {
     // this.group.add(this.spotLightHelper);
     this.group.add(this.spotTarget);
     this.group.add(this.cube);
+
     this.scene.add(this.group);
+  }
+  createRaycaster() {
+    let directionUp = new THREE.Vector3(0, 0, -1);
+    let directionLeft = new THREE.Vector3(-1, 0, 0);
+    let directionRight = new THREE.Vector3(1, 0, 0);
+    this.raycasterUp = new THREE.Raycaster(this.group.position, directionUp, 0.1, 1.0);
+    this.raycasterLeft = new THREE.Raycaster(this.group.position, directionLeft, 0.1, 1.0);
+    this.raycasterRight = new THREE.Raycaster(this.group.position, directionRight, 0.1, 1.0);
   }
   createHud() {
     let screenWidth = window.innerWidth;
@@ -176,13 +201,13 @@ export default class Main {
     }
 
     // 保证了顺序
-    loadImg('images/up.png').then(()=>{
+    loadImg('images/up.png').then(() => {
       return loadImg('images/down.png')
-    }).then(()=>{
+    }).then(() => {
       return loadImg('images/left.png')
-    }).then(()=>{
+    }).then(() => {
       return loadImg('images/right.png')
-    }).then(()=>{
+    }).then(() => {
       this.buttonSize = screenHeight * 0.1;
 
       this.upButtonX = screenWidth * 0.12;
@@ -267,11 +292,25 @@ export default class Main {
     })
   }
   update() {
-    this.Move(this.group,this.xspeed,this.zspeed)
+    // if(this.raycaster.intersectObject(this.wall,true).length == 0){
+    this.Move(this.group, this.xspeed, this.zspeed)
+    // }
+
+    // console.log(this.raycaster.intersectObject(this.wall,true))
   }
-  Move(object,xspeed,zspeed){
-    object.position.x += xspeed;
-    object.position.z += zspeed;
+  Move(object, xspeed, zspeed) {
+    if (this.raycasterLeft.intersectObject(this.wallGroup, true).length == 0 && xspeed < 0) {
+      object.position.x += xspeed;
+    } else if (this.raycasterRight.intersectObject(this.wallGroup, true).length == 0 && xspeed > 0) {
+      object.position.x += xspeed;
+    }
+
+    if (this.raycasterUp.intersectObject(this.wallGroup, true).length == 0 && zspeed < 0) {
+      object.position.z += zspeed;
+    } else if (zspeed > 0) {
+      object.position.z += zspeed;
+    }
+
   }
   loop() {
     this.update();
