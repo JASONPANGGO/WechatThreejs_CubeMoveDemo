@@ -17,15 +17,19 @@ export default class Main {
     this.createRaycaster()
     this.createHud();
     this.HudEvent();
-    // this.setControls()
+    this.setControls()
 
     console.log(this.renderer)
   }
   // 初始化场景
   init() {
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+    // 向前
     this.camera.position.set(0, 7, 7);
     this.camera.rotation.set(-0.5, 0, 0)
+    // 向右
+    // this.camera.position.set(-5,7,0)
+    // this.camera.rotation.set(0, -0.5 * Math.PI, 0)
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xa0a0a0);
@@ -33,11 +37,13 @@ export default class Main {
     // webGL渲染器
     // 同时指定canvas为小游戏暴露出来的canvas
 
+
     this.renderer = new THREE.WebGLRenderer({
       canvas: canvas,
       antialias: true,
       alpha: true
     });
+    this.renderer.setPixelRatio(window.devicePixelRatio)
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMapEnabled = true;
     window.requestAnimationFrame(this.loop.bind(this), canvas);
@@ -50,19 +56,20 @@ export default class Main {
   createLight() {
     this.hemLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.5);
     this.scene.add(this.hemLight);
-    this.pointLight = new THREE.PointLight(0xffffff, 0.3);
-    this.pointLight.position.set(0, 6, 1)
+    this.pointLight = new THREE.PointLight(0xffffff, 0.5);
+    // this.pointLight.position.set(0, 6, 1)
+    this.pointLight.position.set(0, 1.8, 0)
     this.pointLightHelper = new THREE.PointLightHelper(this.pointLight);
 
     this.pointLight.castShadow = true;
     this.pointLight.shadow.mapSize.width = 1024;
     this.pointLight.shadow.mapSize.height = 1024;
-    this.pointLight.shadow.camera.left = -100;
-    this.pointLight.shadow.camera.right = 100;
+    this.pointLight.shadow.camera.left = -1000;
+    this.pointLight.shadow.camera.right = 1000;
     this.pointLight.shadow.camera.bottom = -1000;
     this.pointLight.shadow.camera.top = 1000;
 
-    this.scene.add(this.pointLightHelper);
+    // this.scene.add(this.pointLightHelper);
     this.scene.add(this.pointLight)
   }
   createCube() {
@@ -76,8 +83,10 @@ export default class Main {
     // this.scene.add(this.cube);
 
     let blueLambertMat = new THREE.MeshPhongMaterial({
-      color: 0x0000ff
+      color: 0x0000ff,
+      depthWrite: true
     });
+
     let wallGeo = new THREE.PlaneBufferGeometry(20, 10);
     this.wall = new THREE.Mesh(wallGeo, blueLambertMat);
     this.wall2 = new THREE.Mesh(wallGeo, blueLambertMat);
@@ -87,23 +96,44 @@ export default class Main {
     this.wall.position.set(0, 4, -15)
     this.wall2.position.set(8, 4, -5);
     this.wall3.position.set(-8, 4, -5);
-    this.wall.castShadow = true;
-    this.wall2.castShadow = true;
-    this.wall3.castShadow = true;
+    // this.wall.castShadow = true;
+    this.wall.receiveShadow = true;
+    this.wall2.receiveShadow = true;
+    this.wall3.receiveShadow = true;
+
+    let coneGeo = new THREE.ConeGeometry();
+    this.cone = new THREE.Mesh(coneGeo, blueLambertMat);
+    this.cone.castShadow = true;
+    this.cone.receiveShadow = true;
+    this.cone.position.set(0, 2, -3)
+
+    this.cube_1 = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), blueLambertMat)
+    this.cube_1.position.set(-2, 2, 0);
+    this.cube_1.castShadow = true;
+    this.cube_1.receiveShadow = true;
+
+    this.torus = new THREE.Mesh(new THREE.TorusGeometry(1, 0.3, 16, 16), blueLambertMat)
+    this.torus.position.set(3, 3, -3)
+    this.torus.rotation.set(0, 1.2, 0)
+    this.torus.castShadow = this.torus.receiveShadow = true;
+
+
     this.wallGroup = new THREE.Group();
     this.wallGroup.add(this.wall)
     this.wallGroup.add(this.wall2)
     this.wallGroup.add(this.wall3)
-    this.scene.add(this.wallGroup);
-    // this.scene.add(this.wall);
-    // this.scene.add(this.wall2);
-    // this.scene.add(this.wall3);
+    this.wallGroup.add(this.cone)
+    this.wallGroup.add(this.cube_1)
+    this.wallGroup.add(this.torus)
 
-    let redLambertMat = new THREE.MeshPhongMaterial({
-      color: 0xff0000
+    this.scene.add(this.wallGroup);
+
+
+    this.redLambertMat = new THREE.MeshLambertMaterial({
+      color: 0xffffff
     })
     let lampGeo = new THREE.SphereGeometry(0.5, 32, 32)
-    this.lamp = new THREE.Mesh(lampGeo, redLambertMat);
+    this.lamp = new THREE.Mesh(lampGeo, this.redLambertMat);
     this.lamp.position.set(0, 1.2, 0);
     // this.scene.add(this.lamp);
   }
@@ -145,10 +175,10 @@ export default class Main {
     this.spotLight.shadow.mapSize.width = 1024;
     this.spotLight.shadow.mapSize.height = 1024;
 
-    this.spotLight.shadow.camera.left = -100;
-    this.spotLight.shadow.camera.right = 100;
-    this.spotLight.shadow.camera.top = 100;
-    this.spotLight.shadow.camera.bottom = -100;
+    this.spotLight.shadow.camera.left = -1000;
+    this.spotLight.shadow.camera.right = 1000;
+    this.spotLight.shadow.camera.top = 1000;
+    this.spotLight.shadow.camera.bottom = -1000;
     this.spotLightHelper = new THREE.SpotLightHelper(this.spotLight);
     // this.scene.add(this.spotLight);
     this.spotLightHelper.update();
@@ -160,6 +190,8 @@ export default class Main {
     // this.group.add(this.spotLightHelper);
     this.group.add(this.spotTarget);
     this.group.add(this.cube);
+
+    this.group.add(this.pointLight);
 
     this.scene.add(this.group);
   }
@@ -208,6 +240,8 @@ export default class Main {
     }).then(() => {
       return loadImg('images/right.png')
     }).then(() => {
+      return loadImg('images/power.png')
+    }).then(() => {
       this.buttonSize = screenHeight * 0.1;
 
       this.upButtonX = screenWidth * 0.12;
@@ -220,6 +254,7 @@ export default class Main {
       this.context.drawImage(imgArray[1], this.upButtonX, this.downButtonY, this.buttonSize, this.buttonSize)
       this.context.drawImage(imgArray[2], this.leftButtonX, this.leftButtonY, this.buttonSize, this.buttonSize)
       this.context.drawImage(imgArray[3], this.rightButtonX, this.leftButtonY, this.buttonSize, this.buttonSize)
+      this.context.drawImage(imgArray[4], screenWidth - this.rightButtonX, this.leftButtonY, this.buttonSize * 1.3, this.buttonSize * 1.3)
       this.hubGeo = new THREE.PlaneGeometry(screenWidth, screenHeight);
       this.hubTexture = new THREE.CanvasTexture(this.hubCanvas);
       this.hubTexture.minFilter = THREE.LinearFilter;
@@ -233,39 +268,11 @@ export default class Main {
       this.hudScene.add(hubPlane);
     })
 
-    // //无法保证顺序 
-    // Promise.all([loadImg('images/up.png'),
-    //   loadImg('images/down.png'),
-    //   loadImg('images/left.png'),
-    //   loadImg('images/right.png')
-    // ]).then(() => {
-    //   this.buttonSize = screenHeight * 0.1;
-
-    //   this.upButtonX = screenWidth * 0.12;
-    //   this.upButtonY = screenHeight * 0.68;
-    //   this.downButtonY = screenHeight * 0.82;
-    //   this.leftButtonX = screenWidth * 0.06;
-    //   this.rightButtonX = screenWidth * 0.18;
-    //   this.leftButtonY = screenHeight * 0.75;
-    //   this.context.drawImage(imgArray[0], this.upButtonX, this.upButtonY, this.buttonSize, this.buttonSize)
-    //   this.context.drawImage(imgArray[1], this.upButtonX, this.downButtonY, this.buttonSize, this.buttonSize)
-    //   this.context.drawImage(imgArray[2], this.leftButtonX, this.leftButtonY, this.buttonSize, this.buttonSize)
-    //   this.context.drawImage(imgArray[3], this.rightButtonX, this.leftButtonY, this.buttonSize, this.buttonSize)
-    //   this.hubGeo = new THREE.PlaneGeometry(screenWidth, screenHeight);
-    //   this.hubTexture = new THREE.CanvasTexture(this.hubCanvas);
-    //   this.hubTexture.minFilter = THREE.LinearFilter;
-    //   this.hubTexture.needsUpdate = true;
-    //   let hubMat = new THREE.MeshBasicMaterial({
-    //     map: this.hubTexture,
-    //     transparent: true,
-    //     opacity: 1
-    //   })
-    //   let hubPlane = new THREE.Mesh(this.hubGeo, hubMat);
-    //   this.hudScene.add(hubPlane);
-    // })
 
   }
   HudEvent() {
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
     let SPEED = 0.1;
     this.zspeed = 0;
     this.xspeed = 0;
@@ -276,14 +283,29 @@ export default class Main {
       let distanceToDown = Math.sqrt((x - this.upButtonX - this.buttonSize / 2) * (x - this.upButtonX - this.buttonSize / 2) + (y - this.downButtonY - this.buttonSize / 2) * (y - this.downButtonY - this.buttonSize / 2));
       let distanceToLeft = Math.sqrt((x - this.leftButtonX - this.buttonSize / 2) * (x - this.leftButtonX - this.buttonSize / 2) + (y - this.leftButtonY - this.buttonSize / 2) * (y - this.leftButtonY - this.buttonSize / 2));
       let distanceToRight = Math.sqrt((x - this.rightButtonX - this.buttonSize / 2) * (x - this.rightButtonX - this.buttonSize / 2) + (y - this.leftButtonY - this.buttonSize / 2) * (y - this.leftButtonY - this.buttonSize / 2));
+      let distanceToPower = Math.sqrt((x - (screenWidth - this.rightButtonX) - this.buttonSize * 1.3 / 2) * (x - (screenWidth - this.rightButtonX) - this.buttonSize * 1.3 / 2) + (y - this.leftButtonY - this.buttonSize * 1.3 / 2) * (y - this.leftButtonY - this.buttonSize * 1.3 / 2));
       if (distanceToUp < this.buttonSize / 2) {
+        this.group.rotation.set(0, 0, 0)
         this.zspeed = -SPEED
       } else if (distanceToDown < this.buttonSize / 2) {
+        this.group.rotation.set(0, 0, 0)
         this.zspeed = SPEED
       } else if (distanceToLeft < this.buttonSize / 2) {
+        this.group.rotation.set(0, 0.5 * Math.PI, 0)
         this.xspeed = -SPEED;
       } else if (distanceToRight < this.buttonSize / 2) {
+        this.group.rotation.set(0, -0.5 * Math.PI, 0)
         this.xspeed = SPEED;
+      } else if (distanceToPower < this.buttonSize * 1.3 / 2) {
+        if(this.pointLight.intensity!=0){
+          this.pointLight.intensity = 0;
+          this.redLambertMat = new THREE.MeshLambertMaterial();
+        }else{
+          this.pointLight.intensity = 0.5
+          this.redLambertMat = new THREE.MeshBasicMaterial({
+            color: 0xffffff
+          })
+        }
       }
     })
     window.addEventListener('touchend', (e) => {
