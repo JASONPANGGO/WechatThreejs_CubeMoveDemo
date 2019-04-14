@@ -1,16 +1,16 @@
 import THREE from './libs/three/index'
-
 import {
   Zlib
 } from "./libs/three/js/libs/inflate.min"
 window.Zlib = Zlib
+require('./libs/three/js/loaders/FBXLoader')
 require('./libs/three/js/controls/OrbitControls')
 
 export default class Main {
   constructor() {
     this.init();
     this.createCube();
-    this.createGround();
+    // this.createGround();
     this.createLight();
     this.createTarget();
     this.createGroup()
@@ -18,17 +18,19 @@ export default class Main {
     this.createHud();
     this.HudEvent();
     this.setControls()
-
+    this.loadFBX();
     console.log(this.renderer)
   }
   // 初始化场景
   init() {
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
     // 向前
-    this.camera.position.set(0, 7, 7);
-    this.camera.rotation.set(-0.5, 0, 0)
+    // this.camera.position.set(0, 7, 7);
+    // this.camera.rotation.set(-0.5, 0, 0)
+    this.camera.position.set(0, 17, 7);
+    this.camera.rotation.set(-0.2*Math.PI, -0.2*Math.PI, -0.1*Math.PI)
     // 向右
-    // this.camera.position.set(-5,7,0)
+    // this.camera.position.set(-5,7,0) 
     // this.camera.rotation.set(0, -0.5 * Math.PI, 0)
 
     this.scene = new THREE.Scene();
@@ -48,6 +50,19 @@ export default class Main {
     this.renderer.shadowMapEnabled = true;
     window.requestAnimationFrame(this.loop.bind(this), canvas);
   }
+  loadFBX(){
+    const loader = new THREE.FBXLoader();
+    loader.load('/models/5.fbx', (object)=>{
+      object.castShadow = true;
+      object.receiveShadow = true;
+      for(let i=0;i<28;i++){
+        object.children[i].castShadow = true;
+        object.children[i].receiveShadow = true;
+      }
+      this.scene.add(object);
+      console.log(object)
+    });
+  }
   setControls() {
     this.controls = new THREE.OrbitControls(this.camera)
     this.controls.target.set(this.group.position.x, this.group.position.y + 1, this.group.position.z)
@@ -58,7 +73,7 @@ export default class Main {
     this.scene.add(this.hemLight);
     this.pointLight = new THREE.PointLight(0xffffff, 0.5);
     // this.pointLight.position.set(0, 6, 1)
-    this.pointLight.position.set(0, 1.8, 0)
+    this.pointLight.position.set(0, 3.3, 0)
     this.pointLightHelper = new THREE.PointLightHelper(this.pointLight);
 
     this.pointLight.castShadow = true;
@@ -78,7 +93,7 @@ export default class Main {
       color: 0x00ff00
     });
     this.cube = new THREE.Mesh(boxGeo, greenLambertMat);
-    this.cube.position.set(0, 0, 0);
+    this.cube.position.set(0, 1.5, 0);
     this.cube.castShadow = true;
     // this.scene.add(this.cube);
 
@@ -126,7 +141,7 @@ export default class Main {
     this.wallGroup.add(this.cube_1)
     this.wallGroup.add(this.torus)
 
-    this.scene.add(this.wallGroup);
+    // this.scene.add(this.wallGroup);
 
 
     this.redLambertMat = new THREE.MeshLambertMaterial({
@@ -134,7 +149,7 @@ export default class Main {
     })
     let lampGeo = new THREE.SphereGeometry(0.5, 32, 32)
     this.lamp = new THREE.Mesh(lampGeo, this.redLambertMat);
-    this.lamp.position.set(0, 1.2, 0);
+    this.lamp.position.set(0, 2.7, 0);
     // this.scene.add(this.lamp);
   }
   createGround() {
@@ -167,7 +182,7 @@ export default class Main {
   createGroup() {
     this.spotLight = new THREE.SpotLight('#F0E68C', 0.5);
     this.spotLight.penumbra = 0.1;
-    this.spotLight.position.set(0, 1.2, 0)
+    this.spotLight.position.set(0, 2.7, 0)
     this.spotLight.angle = -0.4
     this.spotLight.target = this.spotTarget
     this.spotLight.castShadow = true;
@@ -224,7 +239,7 @@ export default class Main {
         img.src = src;
         img.onload = () => {
           imgArray.push(img);
-          res(img)
+          res()
         }
         img.onerror = () => {
           rej()
