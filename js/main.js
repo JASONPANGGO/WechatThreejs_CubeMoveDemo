@@ -52,7 +52,7 @@ export default class Main {
   }
   loadFBX(){
     const loader = new THREE.FBXLoader();
-    loader.load('/models/5.fbx', (object)=>{
+    loader.load('/models/stage.fbx', (object)=>{
       object.castShadow = true;
       object.receiveShadow = true;
       for(let i=0;i<28;i++){
@@ -62,11 +62,25 @@ export default class Main {
       this.scene.add(object);
       console.log(object)
     });
+    loader.load('/models/zhenglong.fbx',(object)=>{
+      object.castShadow = true;
+      object.receiveShadow = true;
+      this.scene.add(object)
+    });
+    loader.load('/models/sky.fbx',(object)=>{
+      console.log(object)
+      object.castShadow = true;
+      object.receiveShadow = true;
+      this.scene.add(object)
+    });
   }
   setControls() {
     this.controls = new THREE.OrbitControls(this.camera)
-    this.controls.target.set(this.group.position.x, this.group.position.y + 1, this.group.position.z)
+    this.controls.maxDistance = 1;
+    
     this.controls.update();
+    
+    console.log(this.controls);
   }
   createLight() {
     this.hemLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.5);
@@ -208,6 +222,8 @@ export default class Main {
 
     this.group.add(this.pointLight);
 
+    this.lamp.visible = false;
+    this.cube.visible = false;
     this.scene.add(this.group);
   }
   createRaycaster() {
@@ -332,6 +348,7 @@ export default class Main {
     // if(this.raycaster.intersectObject(this.wall,true).length == 0){
     this.Move(this.group, this.xspeed, this.zspeed)
     // }
+    this.controls.target.set(this.group.position.x, this.group.position.y + 4, this.group.position.z)
 
     // console.log(this.raycaster.intersectObject(this.wall,true))
   }
@@ -350,6 +367,8 @@ export default class Main {
 
   }
   loop() {
+    this.controls.target.set(this.group.position.x, this.group.position.y + 4, this.group.position.z)
+    this.controls.update()
     this.update();
     this.spotLightHelper.update();
     this.renderer.autoClear = false; // 此处关键否则,画布会被重新擦拭

@@ -11,7 +11,9 @@
 	"libVersion": "1.9.94",
 	"appid": "wx0da0dad0a3a9eea0",
 	"projectname": "CubeMoveDemo",
-  "isGameTourist": true,
+	"isGameTourist": true,
+	"simulatorType": "wechat",
+	"simulatorPluginLibVersion": {},
 	"condition": {
 		"search": {
 			"current": -1,
