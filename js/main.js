@@ -52,7 +52,7 @@ export default class Main {
   }
   loadFBX(){
     const loader = new THREE.FBXLoader();
-    loader.load('/models/stage.fbx', (object)=>{
+    loader.load('/models/demo1.fbx', (object)=>{
       object.castShadow = true;
       object.receiveShadow = true;
       for(let i=0;i<28;i++){
